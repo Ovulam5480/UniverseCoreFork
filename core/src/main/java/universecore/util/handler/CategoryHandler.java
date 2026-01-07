@@ -1,8 +1,8 @@
 package universecore.util.handler;
 
 import arc.Core;
-import arc.KeyBinds;
 import arc.graphics.g2d.TextureRegion;
+import arc.input.KeyBind;
 import arc.scene.Element;
 import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.layout.Cell;
@@ -12,7 +12,6 @@ import arc.struct.Seq;
 import arc.util.Nullable;
 import mindustry.Vars;
 import mindustry.gen.Icon;
-import mindustry.input.Binding;
 import mindustry.type.Category;
 import mindustry.ui.Styles;
 
@@ -26,12 +25,10 @@ public class CategoryHandler{
   protected final ObjectMap<Category, UncCategory> newCats = new ObjectMap<>();
   protected boolean hasNew = false;
 
-  protected static final Binding empBind;
+  protected static final KeyBind empBind;
 
   static {
-    EnumHandler<Binding> handler = new EnumHandler<>(Binding.class);
-
-    empBind = handler.addEnumItemTail("unBind", (KeyBinds.KeybindValue) null);
+    empBind = KeyBind.add("unBind", null, "universecore");
   }
   
   public void handleBlockFrag(){
@@ -90,7 +87,7 @@ public class CategoryHandler{
    * @param name 类别的内部名称
    * @param bind 这个类别绑定到的目标键位
    * @param iconName 这个类别的图标的资源文件名称*/
-  public Category add(String name, Binding bind, String iconName){
+  public Category add(String name, KeyBind bind, String iconName){
     return add(name, Category.values().length, bind, iconName);
   }
 
@@ -100,7 +97,7 @@ public class CategoryHandler{
    * @param ordinal 这个类别在选择栏的显示位置序数
    * @param bind 这个类别绑定到的目标键位
    * @param iconName 这个类别的图标的资源文件名称*/
-  public Category add(String name, int ordinal, Binding bind, String iconName){
+  public Category add(String name, int ordinal, KeyBind bind, String iconName){
     hasNew = true;
     UncCategory category = new UncCategory(name, ordinal, bind, iconName);
     newCats.put(category.cat, category);
@@ -109,7 +106,7 @@ public class CategoryHandler{
   }
 
   public void init(){
-    Binding[] arr = FieldHandler.getValueDefault(Vars.ui.hudfrag.blockfrag, "blockSelect");
+    KeyBind[] arr = FieldHandler.getValueDefault(Vars.ui.hudfrag.blockfrag, "blockSelect");
     if (arr.length < Category.all.length){
       arr = Arrays.copyOf(arr, Category.all.length);
       for (int i = 0; i < arr.length; i++) {
@@ -139,18 +136,18 @@ public class CategoryHandler{
     
     final Category cat;
     @Nullable
-    final Binding bind;
+    final KeyBind bind;
     int ordinal;
     final String icon;
     
-    UncCategory(Category cat, Binding bind, String icon){
+    UncCategory(Category cat, KeyBind bind, String icon){
       this.cat = cat;
       this.icon = icon;
       ordinal = cat.ordinal();
       this.bind = bind;
     }
     
-    UncCategory(String name, int ordinal, Binding bind, String icon){
+    UncCategory(String name, int ordinal, KeyBind bind, String icon){
       this(handler.addEnumItem(name, ordinal), bind, icon);
       FieldHandler.setValueDefault(Category.class, "all", Category.values());
       this.ordinal = ordinal;

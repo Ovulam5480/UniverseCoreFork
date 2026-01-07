@@ -8,11 +8,11 @@ plugins {
 }
 
 ext{
-  uncVersion = '2.3.1'
+  uncVersion = '2.4.0'
 
   //the build number that this mod is made for
-  mindustryVersion = 'v147.1'
-  arcVersion = 'v147.1'
+  mindustryVersion = 'v154.3'
+  arcVersion = 'v154.3'
   //version of SDK you will be using
   minSdkAPI = 30
   //version of JavaDynamilizer
@@ -138,6 +138,8 @@ task buildMod(type: Jar){
   dependsOn "buildDesktop"
 
   archiveFileName = "${rootProject.name}-build.jar"
+
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
   from(
       zipTree("${rootProject.buildDir}/libs/${rootProject.name}-android.jar"),
