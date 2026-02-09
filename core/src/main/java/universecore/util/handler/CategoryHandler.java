@@ -3,6 +3,7 @@ package universecore.util.handler;
 import arc.Core;
 import arc.graphics.g2d.TextureRegion;
 import arc.input.KeyBind;
+import arc.input.KeyCode;
 import arc.scene.Element;
 import arc.scene.style.TextureRegionDrawable;
 import arc.scene.ui.layout.Cell;
@@ -28,7 +29,7 @@ public class CategoryHandler{
   protected static final KeyBind empBind;
 
   static {
-    empBind = KeyBind.add("unBind", null, "universecore");
+    empBind = KeyBind.add("unBind", KeyCode.unset, "universecore");
   }
   
   public void handleBlockFrag(){
