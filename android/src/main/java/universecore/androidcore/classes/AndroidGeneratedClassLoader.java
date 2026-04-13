@@ -45,6 +45,9 @@ public class AndroidGeneratedClassLoader extends AbstractGeneratedClassLoader {
       }
       DexLoaderFactory.writeFile(out, file);
 
+      file.setReadable(true, false);
+      file.setWritable(false, false);
+
       updateLoader();
     }catch(IOException e){
       throw new RuntimeException(e);
