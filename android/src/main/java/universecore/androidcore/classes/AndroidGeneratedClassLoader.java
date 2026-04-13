@@ -33,10 +33,12 @@ public class AndroidGeneratedClassLoader extends AbstractGeneratedClassLoader {
     try{
       byte[] out;
       if(file.exists()){
+        file.setWritable(true, false);
+
         DexMerger merger = new DexMerger(
-            new Dex[]{new Dex(file), new Dex(byteCode)},
-            CollisionPolicy.KEEP_FIRST,
-            context
+                new Dex[]{new Dex(file), new Dex(byteCode)},
+                CollisionPolicy.KEEP_FIRST,
+                context
         );
         out = merger.merge().getBytes();
       }
