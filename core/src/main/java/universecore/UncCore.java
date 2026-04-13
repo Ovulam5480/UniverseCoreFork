@@ -121,7 +121,7 @@ public class UncCore extends Mod{
   @Override
   public void init(){
     if(!Vars.net.server()) {
-      Vars.ui.database = UncDatabaseDialog.make();
+      //Vars.ui.database = UncDatabaseDialog.make();
       Group overlay = FieldHandler.getValueDefault(Vars.control.input, "group");
       FieldHandler.decache(Vars.control.input.getClass());
       secConfig = new SecondaryConfigureFragment();
