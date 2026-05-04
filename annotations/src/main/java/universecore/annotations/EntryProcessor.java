@@ -282,16 +282,49 @@ public class EntryProcessor extends BaseProcessor{
 
       maker.at(tree.getPreferredPosition());
       ArrayList<JCTree.JCExpression> argRef = new ArrayList<>();
-      for (Symbol.VarSymbol varSymbol : paramAssign) {
-        if (varSymbol.getKind() == ElementKind.FIELD){
-          argRef.add(
-              maker.Select(maker.This(tree.sym.type), varSymbol)
-          );
+      
+      // 如果方法已经在当前类中存在，需要从已有方法的参数中获取符号
+      if(method.getEnclosingElement().equals(tree.sym)){
+        JCTree.JCMethodDecl existingMethod = trees.getTree(method);
+        if(existingMethod != null){
+          List<JCTree.JCVariableDecl> existingParams = existingMethod.getParameters();
+          // 对于已存在的方法，直接使用其参数符号
+          for(JCTree.JCVariableDecl param : existingParams){
+            if(param.sym != null){
+              argRef.add(maker.Ident(param.sym));
+            }
+          }
+        }else{
+          // 理论上不应该到达这里，但为了安全起见
+          for(Symbol.VarSymbol varSymbol : paramAssign){
+            if(varSymbol == null){
+              throw new IllegalStateException("Parameter mapping failed for method '" + mName + ". " +
+                  "When multiple interfaces define @MethodEntry for the same target method, " +
+                  "ensure all entries use consistent parameter types and names.");
+            }
+            if(varSymbol.getKind() == ElementKind.FIELD){
+              argRef.add(maker.Select(maker.This(tree.sym.type), varSymbol));
+            }
+            else{
+              argRef.add(maker.Ident(varSymbol));
+            }
+          }
         }
-        else{
-          argRef.add(
-              maker.Ident(varSymbol)
-          );
+      }
+      else{
+        // 方法不存在，需要创建新方法，使用 paramAssign 中的映射
+        for(Symbol.VarSymbol varSymbol : paramAssign){
+          if(varSymbol == null){
+            throw new IllegalStateException("Parameter mapping failed for method '" + mName + "'. " +
+                "Check that @MethodEntry paramTypes correctly match the target method parameters. " +
+                "Example: paramTypes = {\"arc.util.io.Writes -> write\"}");
+          }
+          if(varSymbol.getKind() == ElementKind.FIELD){
+            argRef.add(maker.Select(maker.This(tree.sym.type), varSymbol));
+          }
+          else{
+            argRef.add(maker.Ident(varSymbol));
+          }
         }
       }
 
