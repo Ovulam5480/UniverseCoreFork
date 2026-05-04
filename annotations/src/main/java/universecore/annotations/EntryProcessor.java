@@ -241,12 +241,12 @@ public class EntryProcessor extends BaseProcessor{
             }
           }
         }
+        // 如果没有使用 -> 绑定参数，则跳过该目标方法参数
+        // 这是正常的，因为不是所有目标方法参数都需要传递给入口方法
       }
 
-      for(Symbol s: paramAssign){
-        if(s == null)
-          throw new IllegalArgumentException("parameter assign require the parameter that annotation given equals target method parameter");
-      }
+      // 注意：paramAssign 中允许有 null 值，因为不是所有入口方法参数都需要从目标方法映射
+      // 某些参数可能来自 context（上下文字段）或其他来源
 
       if(!defaultDeclare && !methods.get(mName).contains(m))
         throw new IllegalArgumentException("Cannot search up methods from superclass in strict mode");
@@ -283,48 +283,30 @@ public class EntryProcessor extends BaseProcessor{
       maker.at(tree.getPreferredPosition());
       ArrayList<JCTree.JCExpression> argRef = new ArrayList<>();
       
-      // 如果方法已经在当前类中存在，需要从已有方法的参数中获取符号
-      if(method.getEnclosingElement().equals(tree.sym)){
-        JCTree.JCMethodDecl existingMethod = trees.getTree(method);
-        if(existingMethod != null){
-          List<JCTree.JCVariableDecl> existingParams = existingMethod.getParameters();
-          // 对于已存在的方法，直接使用其参数符号
-          for(JCTree.JCVariableDecl param : existingParams){
-            if(param.sym != null){
-              argRef.add(maker.Ident(param.sym));
-            }
-          }
-        }else{
-          // 理论上不应该到达这里，但为了安全起见
-          for(Symbol.VarSymbol varSymbol : paramAssign){
-            if(varSymbol == null){
-              throw new IllegalStateException("Parameter mapping failed for method '" + mName + ". " +
-                  "When multiple interfaces define @MethodEntry for the same target method, " +
-                  "ensure all entries use consistent parameter types and names.");
-            }
-            if(varSymbol.getKind() == ElementKind.FIELD){
-              argRef.add(maker.Select(maker.This(tree.sym.type), varSymbol));
-            }
-            else{
-              argRef.add(maker.Ident(varSymbol));
-            }
-          }
+      // 检查 paramAssign 中是否有 null 值，这表示参数映射失败
+      for(int i = 0; i < paramAssign.length; i++){
+        if(paramAssign[i] == null){
+          throw new IllegalStateException(
+              "Parameter mapping failed for entry method '" + symbol.getQualifiedName() + "' at index " + i + ".\n" +
+              "This usually happens when:\n" +
+              "1. The @MethodEntry annotation's paramTypes/context doesn't match the entry method parameters\n" +
+              "2. A required field for context binding doesn't exist\n" +
+              "Entry method: " + symbol + "\n" +
+              "Target method: " + mName
+          );
         }
       }
-      else{
-        // 方法不存在，需要创建新方法，使用 paramAssign 中的映射
-        for(Symbol.VarSymbol varSymbol : paramAssign){
-          if(varSymbol == null){
-            throw new IllegalStateException("Parameter mapping failed for method '" + mName + "'. " +
-                "Check that @MethodEntry paramTypes correctly match the target method parameters. " +
-                "Example: paramTypes = {\"arc.util.io.Writes -> write\"}");
-          }
-          if(varSymbol.getKind() == ElementKind.FIELD){
-            argRef.add(maker.Select(maker.This(tree.sym.type), varSymbol));
-          }
-          else{
-            argRef.add(maker.Ident(varSymbol));
-          }
+      
+      for (Symbol.VarSymbol varSymbol : paramAssign) {
+        if (varSymbol.getKind() == ElementKind.FIELD){
+          argRef.add(
+              maker.Select(maker.This(tree.sym.type), varSymbol)
+          );
+        }
+        else{
+          argRef.add(
+              maker.Ident(varSymbol)
+          );
         }
       }
 
