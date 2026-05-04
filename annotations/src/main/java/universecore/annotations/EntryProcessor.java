@@ -283,30 +283,58 @@ public class EntryProcessor extends BaseProcessor{
       maker.at(tree.getPreferredPosition());
       ArrayList<JCTree.JCExpression> argRef = new ArrayList<>();
       
-      // 检查 paramAssign 中是否有 null 值，这表示参数映射失败
-      for(int i = 0; i < paramAssign.length; i++){
-        if(paramAssign[i] == null){
-          throw new IllegalStateException(
-              "Parameter mapping failed for entry method '" + symbol.getQualifiedName() + "' at index " + i + ".\n" +
-              "This usually happens when:\n" +
-              "1. The @MethodEntry annotation's paramTypes/context doesn't match the entry method parameters\n" +
-              "2. A required field for context binding doesn't exist\n" +
-              "Entry method: " + symbol + "\n" +
-              "Target method: " + mName
-          );
+      // 如果方法已经在当前类中存在，需要从已有方法的参数中获取符号
+      if(method.getEnclosingElement().equals(tree.sym)){
+        JCTree.JCMethodDecl existingMethod = trees.getTree(method);
+        if(existingMethod != null){
+          // 对于已存在的方法，直接使用其参数符号来构建调用
+          List<JCTree.JCVariableDecl> existingParams = existingMethod.getParameters();
+          for(JCTree.JCVariableDecl param : existingParams){
+            if(param.sym != null){
+              argRef.add(maker.Ident(param.sym));
+            }
+          }
+        }else{
+          // 理论上不应该到达这里，但为了安全起见，使用 paramAssign
+          for(int i = 0; i < paramAssign.length; i++){
+            if(paramAssign[i] == null){
+              throw new IllegalStateException(
+                  "Parameter mapping failed for entry method '" + symbol.getQualifiedName() + "' at index " + i + ".\n" +
+                  "This usually happens when:\n" +
+                  "1. The @MethodEntry annotation's paramTypes/context doesn't match the entry method parameters\n" +
+                  "2. A required field for context binding doesn't exist\n" +
+                  "Entry method: " + symbol + "\n" +
+                  "Target method: " + mName
+              );
+            }
+            if(paramAssign[i].getKind() == ElementKind.FIELD){
+              argRef.add(maker.Select(maker.This(tree.sym.type), paramAssign[i]));
+            }
+            else{
+              argRef.add(maker.Ident(paramAssign[i]));
+            }
+          }
         }
       }
-      
-      for (Symbol.VarSymbol varSymbol : paramAssign) {
-        if (varSymbol.getKind() == ElementKind.FIELD){
-          argRef.add(
-              maker.Select(maker.This(tree.sym.type), varSymbol)
-          );
-        }
-        else{
-          argRef.add(
-              maker.Ident(varSymbol)
-          );
+      else{
+        // 方法不存在，需要创建新方法，使用 paramAssign 中的映射
+        for(int i = 0; i < paramAssign.length; i++){
+          if(paramAssign[i] == null){
+            throw new IllegalStateException(
+                "Parameter mapping failed for entry method '" + symbol.getQualifiedName() + "' at index " + i + ".\n" +
+                "This usually happens when:\n" +
+                "1. The @MethodEntry annotation's paramTypes/context doesn't match the entry method parameters\n" +
+                "2. A required field for context binding doesn't exist\n" +
+                "Entry method: " + symbol + "\n" +
+                "Target method: " + mName
+            );
+          }
+          if(paramAssign[i].getKind() == ElementKind.FIELD){
+            argRef.add(maker.Select(maker.This(tree.sym.type), paramAssign[i]));
+          }
+          else{
+            argRef.add(maker.Ident(paramAssign[i]));
+          }
         }
       }
 
