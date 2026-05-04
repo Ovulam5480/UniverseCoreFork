@@ -1,6 +1,7 @@
 package universecore.components.blockcomp;
 
 import arc.struct.ObjectMap;
+import mindustry.game.Team;
 import mindustry.world.Tile;
 import universecore.annotations.Annotations;
 
@@ -17,12 +18,12 @@ public interface ReplaceBuildComp extends BuildCompBase {
     replaceEntry.put(tile, this);
   }
 
-  @Annotations.MethodEntry(entryMethod = "init", paramTypes = {"mindustry.world.Tile", "mindustry.game.Team", "boolean", "int"})
-  default void buildInitialized(){
-    ReplaceBuildComp old = replaceEntry.get(getTile());
+  @Annotations.MethodEntry(entryMethod = "init", paramTypes = {"mindustry.world.Tile -> tile", "mindustry.game.Team -> team", "boolean -> shouldAdd", "int -> rotation"})
+  default void buildInitialized(Tile tile, Team team, boolean shouldAdd, int rotation){
+    ReplaceBuildComp old = replaceEntry.get(tile);
     if (old == null) return;
     onReplaced(old);
-    replaceEntry.remove(getTile());
+    replaceEntry.remove(tile);
   }
 
   /**在方块放置并覆盖了一个有效的可替换方块时调用，传入被覆盖的方块
