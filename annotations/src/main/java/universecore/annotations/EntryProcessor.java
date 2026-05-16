@@ -423,26 +423,35 @@ public class EntryProcessor extends BaseProcessor{
         addMethod(methods, method, true);
       }
       else{
-        override = false;
-
         methodEntry = trees.getTree(method);
 
-        maker.at(methodEntry.getPreferredPosition());
-        ArrayList<JCTree.JCStatement> stats = new ArrayList<>(methodEntry.body.stats);
-        JCTree.JCStatement stat;
-        if(stats.size() != 0 && (stat = stats.get(stats.size() - 1)).getKind() == Tree.Kind.RETURN){
-          JCTree.JCReturn r = (JCTree.JCReturn) stat;
-          if(!(r.expr instanceof JCTree.JCIdent) && insert == Annotations.InsertPosition.END){
-            JCTree.JCVariableDecl res = maker.VarDef(
-                maker.Modifiers(0),
-                names.fromString("$result$"),
-                methodEntry.restype,
-                r.expr
-            );
-            stats.add(stats.size() - 1, res);
-            r.expr = maker.Ident(names.fromString("$result$"));
+        if(override){
+          maker.at(methodEntry.getPreferredPosition());
+          Symbol.VarSymbol resSym = new Symbol.VarSymbol(0, names.fromString("$result$"), method.getReturnType(), method);
+          
+          methodEntry.body = maker.at(methodEntry.getPreferredPosition()).Block(0,
+              method.getReturnType().getKind() == TypeKind.VOID? List.of(maker.Exec(callEntry)):
+                  List.of(maker.Return(callEntry))
+          );
+        }
+        else{
+          maker.at(methodEntry.getPreferredPosition());
+          ArrayList<JCTree.JCStatement> stats = new ArrayList<>(methodEntry.body.stats);
+          JCTree.JCStatement stat;
+          if(stats.size() != 0 && (stat = stats.get(stats.size() - 1)).getKind() == Tree.Kind.RETURN){
+            JCTree.JCReturn r = (JCTree.JCReturn) stat;
+            if(!(r.expr instanceof JCTree.JCIdent) && insert == Annotations.InsertPosition.END){
+              JCTree.JCVariableDecl res = maker.VarDef(
+                  maker.Modifiers(0),
+                  names.fromString("$result$"),
+                  methodEntry.restype,
+                  r.expr
+              );
+              stats.add(stats.size() - 1, res);
+              r.expr = maker.Ident(names.fromString("$result$"));
 
-            methodEntry.body = maker.Block(0, List.from(stats));
+              methodEntry.body = maker.Block(0, List.from(stats));
+            }
           }
         }
       }
