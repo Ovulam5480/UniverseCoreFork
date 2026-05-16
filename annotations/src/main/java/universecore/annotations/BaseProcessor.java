@@ -223,7 +223,7 @@ public abstract class BaseProcessor extends AbstractProcessor{
     if(a instanceof Type.ClassType && b instanceof Type.ClassType){
       return b.tsym.isSubClass(a.tsym, types);
     }
-    else if(a instanceof Type.JCPrimitiveType){
+    else if(a instanceof Type.JCPrimitiveType || a instanceof Type.JCVoidType){
       return a.equals(b);
     }
     return false;
