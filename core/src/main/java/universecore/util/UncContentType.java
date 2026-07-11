@@ -68,7 +68,7 @@ public class UncContentType{
    * @param contentClass 这个contentType关联的内容类
    * @param display 是否在数据库内显示*/
   public UncContentType(String name, int ordinal, Class<? extends Content> contentClass, boolean display){
-    value = handler.addEnumItemTail(name, contentClass);
+    value = handler.addEnumItemTail(name, name, contentClass);
     this.ordinal = ordinal;
     this.display = display;
   
