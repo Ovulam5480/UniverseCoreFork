@@ -24,9 +24,6 @@ publishing {
   }
 }
 
-sourceCompatibility = 17
-targetCompatibility = 8
-
 tasks.withType(JavaCompile){
   options.compilerArgs.addAll(['--release', '17'])
 }
