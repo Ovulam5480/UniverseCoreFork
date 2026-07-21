@@ -34,7 +34,7 @@ kotlin {
     }
 }
 
-sourceCompatibility = 8
+sourceCompatibility = 17
 targetCompatibility = 8
 
 tasks.withType(JavaCompile){
